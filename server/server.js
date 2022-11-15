@@ -8,7 +8,7 @@ dotenv.config();
 const app = fastify();
 app.register(sensible);
 app.register(cors, {
-  origin: process.env.Client_URL,
+  origin: process.env.CLIENT_URL,
   credentials: true,
 });
 const prisma = new PrismaClient();
@@ -19,6 +19,34 @@ app.get("/posts", async (req, res) => {
       select: {
         id: true,
         title: true,
+      },
+    })
+  );
+});
+app.get("/posts/:id", async (req, res) => {
+  return await commitToDb(
+    prisma.post.findUnique({
+      where: { id: req.params.id },
+      select: {
+        body: true,
+        title: true,
+        comments: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            id: true,
+            message: true,
+            parentId: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     })
   );
